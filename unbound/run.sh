@@ -5,9 +5,9 @@ set -euo pipefail
 readonly TRUST_ANCHOR=/var/lib/unbound/root.key
 
 # unbound-anchor returns 1 after creating or updating the anchor and may return 0 even on write errors,
-# so the file check below is what decides.
+# so the file check below is what decides. IPv4 only, matching do-ip6: no in unbound.conf.
 rc=0
-unbound-anchor -a "$TRUST_ANCHOR" || rc=$?
+unbound-anchor -4 -a "$TRUST_ANCHOR" || rc=$?
 case "$rc" in
     0 | 1) ;;
     *) echo "warning: unbound-anchor exited with $rc" >&2 ;;
