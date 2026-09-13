@@ -6,40 +6,107 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: package-updates
   cancel-in-progress: false
 
 jobs:
-  update:
+  # Detects package changes and verifies the release with a read-only token,
+  # so no third-party action ever runs next to a write token.
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.pkg.outputs.changed }}
+      version: ${{ steps.pkg.outputs.version }}
+      lock_sha256: ${{ steps.lock.outputs.sha256 }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Build image with current Alpine packages
+      - name: Build image with current Alpine packages (amd64)
         run: docker build --pull --no-cache -t unbound-pkg:ci unbound
 
       - name: Compare package set
         id: pkg
         run: .github/scripts/package-update.sh unbound-pkg:ci
 
+      - name: Fingerprint package list
+        id: lock
+        if: steps.pkg.outputs.changed == 'true'
+        run: echo "sha256=$(sha256sum unbound/apk-packages.txt | cut -d ' ' -f 1)" >>"$GITHUB_OUTPUT"
+
       # Pushes made with GITHUB_TOKEN do not trigger the CI workflow, so the release is verified here.
-      - name: Smoke test
+      - name: Smoke test (amd64)
         if: steps.pkg.outputs.changed == 'true'
         run: |
           command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
           tests/smoke.sh unbound-pkg:ci --hardened
 
+      # Set up after the amd64 build: Buildx becomes the default builder and would not load plain docker builds.
+      - name: Set up QEMU
+        if: steps.pkg.outputs.changed == 'true'
+        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
+
+      - name: Set up Buildx
+        if: steps.pkg.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Build image (aarch64)
+        if: steps.pkg.outputs.changed == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: ./unbound
+          platforms: linux/arm64
+          pull: true
+          no-cache: true
+          load: true
+          push: false
+          tags: unbound-pkg:arm64
+
+      - name: Check configuration (aarch64)
+        if: steps.pkg.outputs.changed == 'true'
+        run: docker run --rm --platform linux/arm64 unbound-pkg:arm64 unbound-checkconf /etc/unbound/unbound.conf
+
       - name: Home Assistant app linter
         if: steps.pkg.outputs.changed == 'true'
-        uses: frenck/action-addon-linter@v2.21.1
+        uses: frenck/action-addon-linter@b9cfd1bc62ba60d2c4fc96317b5f7ada5923f4a7 # v2.21.1
         with:
           path: "./unbound"
 
+  # Holds the write token and therefore runs no third-party actions.
+  release:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Rebuilds instead of passing files between jobs; the next step ensures the verified package set is released.
+      - name: Rebuild and prepare release
+        id: pkg
+        run: |
+          docker build --pull --no-cache -t unbound-pkg:ci unbound
+          .github/scripts/package-update.sh unbound-pkg:ci
+
+      - name: Verify release matches the checked package set
+        env:
+          CHANGED: ${{ steps.pkg.outputs.changed }}
+          VERSION: ${{ steps.pkg.outputs.version }}
+          EXPECTED_VERSION: ${{ needs.check.outputs.version }}
+          EXPECTED_SHA256: ${{ needs.check.outputs.lock_sha256 }}
+        run: |
+          actual=$(sha256sum unbound/apk-packages.txt | cut -d ' ' -f 1)
+          if [ "$CHANGED" != true ] || [ "$VERSION" != "$EXPECTED_VERSION" ] || [ "$actual" != "$EXPECTED_SHA256" ]; then
+            echo "::error::Package set changed after the check job (version '$VERSION', sha256 $actual); run the workflow again."
+            exit 1
+          fi
+
       - name: Commit release
-        if: steps.pkg.outputs.changed == 'true'
         env:
           VERSION: ${{ steps.pkg.outputs.version }}
         run: |

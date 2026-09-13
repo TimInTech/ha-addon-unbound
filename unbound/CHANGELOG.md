@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+- `unbound-anchor` uses IPv4 only, matching `do-ip6: no`, so a start without IPv6 does not wait for IPv6 timeouts.
+- `unbound.conf` no longer restates Unbound defaults; the effective configuration is unchanged.
+- Documentation: verification through Pi-hole explained, note on public names with private addresses.
+
 ## 1.1.0
 
 - The container starts as the unprivileged user `unbound`; no root phase and no capabilities are needed.
