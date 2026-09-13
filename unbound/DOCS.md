@@ -12,7 +12,8 @@ It resolves names directly from the root servers, so no third-party DNS provider
 - The DNSSEC trust anchor ships with the image (`/var/lib/unbound/root.key`), is refreshed with `unbound-anchor`
   on every start and follows key rollovers (RFC 5011) while running. The app data folder is not used; after an
   update or reinstall the anchor is bootstrapped again from the image.
-- There are no options. Start the app and point your DNS server at it.
+- There are no options, by design: the Supervisor writes `options.json` readable for root only, and this app
+  never runs as root. Start the app and point your DNS server at it.
 
 ## Use with Pi-hole
 
@@ -37,3 +38,7 @@ dig @192.168.178.56 example.com         # expected: NOERROR with an answer
 
 The image is built on your device from `alpine:3.24`. A new app version triggers a rebuild, which also pulls
 the current Unbound package of that Alpine branch.
+
+A weekly job rebuilds the image; when any Alpine package in it changed (for example `unbound` or `libssl3`),
+it publishes a patch version after the smoke test passed, so Home Assistant offers the update.
+`apk-packages.txt` lists the package versions of the latest release.
