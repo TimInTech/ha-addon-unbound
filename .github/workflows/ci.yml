@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Home Assistant app linter
+        uses: frenck/action-addon-linter@v2.21.1
+        with:
+          path: "./unbound"
+      - name: ShellCheck
+        run: shellcheck unbound/run.sh
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            smoke: true
+          - arch: aarch64
+            platform: linux/arm64
+            smoke: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: docker/setup-qemu-action@v4.3.0
+      - uses: docker/setup-buildx-action@v4.3.0
+      - name: Build ${{ matrix.arch }}
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: ./unbound
+          platforms: ${{ matrix.platform }}
+          load: true
+          push: false
+          tags: unbound-test:ci
+      - name: Smoke test (resolution and DNSSEC)
+        if: matrix.smoke
+        run: |
+          command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
+          docker run -d --name unbound --network host --tmpfs /data unbound-test:ci
+          for i in $(seq 1 30); do
+            dig @127.0.0.1 -p 5335 example.com +time=2 +tries=1 >/dev/null 2>&1 && break
+            sleep 1
+          done
+          out=$(dig @127.0.0.1 -p 5335 example.com A +dnssec +time=5 +tries=2)
+          echo "$out" | grep -q 'status: NOERROR' || { echo "$out"; docker logs unbound; exit 1; }
+          echo "$out" | grep -qE 'flags: [a-z ]*\bad\b' || { echo "missing AD flag"; echo "$out"; docker logs unbound; exit 1; }
+          fail=$(dig @127.0.0.1 -p 5335 dnssec-failed.org A +time=5 +tries=2)
+          echo "$fail" | grep -q 'status: SERVFAIL' || { echo "DNSSEC validation not enforced"; echo "$fail"; docker logs unbound; exit 1; }
+          docker logs unbound

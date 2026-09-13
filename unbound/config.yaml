@@ -1,0 +1,14 @@
+name: "Unbound"
+version: "1.0.0"
+slug: "unbound"
+description: "Recursive, DNSSEC-validating DNS resolver on 127.0.0.1:5335, e.g. as upstream for Pi-hole"
+url: "https://github.com/TimInTech/ha-addon-unbound"
+arch:
+  - amd64
+  - aarch64
+startup: system
+boot: auto
+init: false
+host_network: true
+options: {}
+schema: {}
