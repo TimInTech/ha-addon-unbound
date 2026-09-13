@@ -20,8 +20,7 @@ jobs:
           path: "./unbound"
       - name: ShellCheck
         run: |
-          shellcheck -s sh unbound/run.sh
-          shellcheck tests/smoke.sh
+          docker run --rm -v "$PWD:/mnt:ro" -w /mnt koalaman/shellcheck:v0.11.0 unbound/run.sh tests/smoke.sh
 
   build:
     runs-on: ubuntu-latest
