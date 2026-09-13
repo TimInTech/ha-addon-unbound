@@ -46,8 +46,8 @@ jobs:
           load: true
           push: false
           tags: unbound-test:ci
-      - name: Smoke test (resolution, DNSSEC, restart)
+      - name: Smoke test (resolution, DNSSEC, restart, unprivileged start)
         if: matrix.smoke
         run: |
           command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
-          tests/smoke.sh unbound-test:ci
+          tests/smoke.sh unbound-test:ci --hardened

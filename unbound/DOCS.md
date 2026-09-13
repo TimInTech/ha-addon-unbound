@@ -7,7 +7,11 @@ It resolves names directly from the root servers, so no third-party DNS provider
 
 - The app uses the host network and listens **only on `127.0.0.1:5335`** (UDP and TCP).
   It is not reachable from your LAN and does not conflict with DNS on port 53 or mDNS on port 5353.
-- The DNSSEC trust anchor is stored in the app data folder (`/data/root.key`) and kept up to date automatically.
+- The container runs as the unprivileged user `unbound` from the first command on and needs no capabilities.
+  Because of that it cannot listen on ports below 1024.
+- The DNSSEC trust anchor ships with the image (`/var/lib/unbound/root.key`), is refreshed with `unbound-anchor`
+  on every start and follows key rollovers (RFC 5011) while running. The app data folder is not used; after an
+  update or reinstall the anchor is bootstrapped again from the image.
 - There are no options. Start the app and point your DNS server at it.
 
 ## Use with Pi-hole
