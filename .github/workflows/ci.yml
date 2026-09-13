@@ -19,7 +19,8 @@ jobs:
         with:
           path: "./unbound"
       - name: ShellCheck
-        run: shellcheck unbound/run.sh
+        run: |
+          docker run --rm -v "$PWD:/mnt:ro" -w /mnt koalaman/shellcheck:v0.11.0 unbound/run.sh tests/smoke.sh
 
   build:
     runs-on: ubuntu-latest
@@ -45,18 +46,8 @@ jobs:
           load: true
           push: false
           tags: unbound-test:ci
-      - name: Smoke test (resolution and DNSSEC)
+      - name: Smoke test (resolution, DNSSEC, restart, unprivileged start)
         if: matrix.smoke
         run: |
           command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
-          docker run -d --name unbound --network host --tmpfs /data unbound-test:ci
-          for i in $(seq 1 30); do
-            dig @127.0.0.1 -p 5335 example.com +time=2 +tries=1 >/dev/null 2>&1 && break
-            sleep 1
-          done
-          out=$(dig @127.0.0.1 -p 5335 example.com A +dnssec +time=5 +tries=2)
-          echo "$out" | grep -q 'status: NOERROR' || { echo "$out"; docker logs unbound; exit 1; }
-          echo "$out" | grep -qE 'flags: [a-z ]*\bad\b' || { echo "missing AD flag"; echo "$out"; docker logs unbound; exit 1; }
-          fail=$(dig @127.0.0.1 -p 5335 dnssec-failed.org A +time=5 +tries=2)
-          echo "$fail" | grep -q 'status: SERVFAIL' || { echo "DNSSEC validation not enforced"; echo "$fail"; docker logs unbound; exit 1; }
-          docker logs unbound
+          tests/smoke.sh unbound-test:ci --hardened
