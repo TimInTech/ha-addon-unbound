@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 200" width="500" height="200">
+  <image x="0" y="12" width="176" height="176" xlink:href="icon.svg"/>
+  <text x="198" y="106" font-family="Inter, 'Noto Sans', 'DejaVu Sans', sans-serif" font-size="60" font-weight="700" fill="#0B3D5C" letter-spacing="-0.5">Unbound</text>
+  <text x="201" y="144" font-family="Inter, 'Noto Sans', 'DejaVu Sans', sans-serif" font-size="25" font-weight="500" fill="#138A9E">for Home Assistant</text>
+</svg>
