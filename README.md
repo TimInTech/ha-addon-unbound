@@ -53,6 +53,12 @@ flowchart LR
     unbound -- "iterative queries" --> internet["Root, TLD and<br/>authoritative servers"]
 ```
 
+## Support
+
+If you like the app and would like to support my work, you can buy me a coffee:
+
+<a href="https://buymeacoffee.com/timintech"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy me a coffee" width="217"></a>
+
 ## Installation
 
 1. Click the button above, or open *Settings → Apps → App store → ⋮ → Repositories* and add
