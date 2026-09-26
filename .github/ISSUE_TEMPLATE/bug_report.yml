@@ -1,0 +1,50 @@
+name: Bug report
+description: Something in the Unbound app doesn't work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please do **not** use this form for security
+        vulnerabilities — see [SECURITY.md](../../SECURITY.md) instead.
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: See the *Info* tab of the app, or `version` in `unbound/config.yaml`.
+      placeholder: "1.1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant OS / Supervisor version and architecture
+      placeholder: "HAOS 15.x, Supervisor 2026.x, aarch64 (Raspberry Pi 5)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Copy from the app's *Log* tab. This will be rendered as a code block, no backticks needed.
+      render: shell
+    validations:
+      required: false
