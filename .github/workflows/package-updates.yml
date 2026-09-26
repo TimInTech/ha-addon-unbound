@@ -48,7 +48,7 @@ jobs:
       # Set up after the amd64 build: Buildx becomes the default builder and would not load plain docker builds.
       - name: Set up QEMU
         if: steps.pkg.outputs.changed == 'true'
-        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Buildx
         if: steps.pkg.outputs.changed == 'true'
