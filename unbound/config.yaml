@@ -9,4 +9,3 @@ arch:
 startup: system
 init: false
 host_network: true
-watchdog: "tcp://127.0.0.1:5335"
