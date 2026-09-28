@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3
+
+- Rebuilt with updated Alpine packages:
+  - `libexpat` 2.8.4-r0 → 2.8.5-r0
+
 ## 1.1.2
 
 - Rebuilt with updated Alpine packages:
