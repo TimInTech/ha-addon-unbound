@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4
+
+- Rebuilt with updated Alpine packages:
+  - `nghttp2-libs` 1.69.0-r0 → 1.70.0-r0
+
 ## 1.1.3
 
 - Rebuilt with updated Alpine packages:
