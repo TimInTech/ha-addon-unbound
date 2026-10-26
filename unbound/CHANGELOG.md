@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.6
+
+- Rebuilt with updated Alpine packages:
+  - `alpine-release` 3.24.2-r0 → 3.24.3-r0
+  - `ca-certificates-bundle` 20260909-r0 → 20261020-r0
+  - `libcrypto3` 3.5.8-r0 → 3.5.9-r0
+  - `libssl3` 3.5.8-r0 → 3.5.9-r0
+  - `musl-utils` 1.2.6-r2 → 1.2.6-r3
+  - `musl` 1.2.6-r2 → 1.2.6-r3
+  - `zlib` 1.3.2-r0 → 1.3.2-r1
+
 ## 1.1.5
 
 - Rebuilt with updated Alpine packages:
