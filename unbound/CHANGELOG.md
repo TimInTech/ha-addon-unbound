@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.7
+
+- Rebuilt with updated Alpine packages:
+  - `alpine-release` 3.24.3-r0 → 3.24.4-r0
+  - `apk-tools` 3.0.8-r0 → 3.0.9-r0
+  - `libapk` 3.0.8-r0 → 3.0.9-r0
+  - `libexpat` 2.9.0-r0 → 2.10.0-r0
+
 ## 1.1.6
 
 - Rebuilt with updated Alpine packages:
